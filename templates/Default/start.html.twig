@@ -1,0 +1,8 @@
+{% extends 'layout.html.twig' %}
+{% block body %}
+
+    {% include 'Board/board.html.twig' with grid %}
+    {% include 'Board/currentPlayer.html.twig' with grid %}
+    {% include 'Board/controls.html.twig' %}
+
+{% endblock body %}
