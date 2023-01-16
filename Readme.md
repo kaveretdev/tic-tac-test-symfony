@@ -23,24 +23,10 @@ It is composed by 4 containers:
 
 1. 😀 Clone this rep.
 
-2. Create the file `./.docker/.env.nginx.local` using `./.docker/.env.nginx` as template. The value of the variable `NGINX_BACKEND_DOMAIN` is the `server_name` used in NGINX.
+2. Install docker and Run : 
 
-3. Go inside folder `./docker` and run `docker-sync-stack start` to start containers.
+make start / (cd ./.docker && docker compose up -d && docker compose exec php composer install)
 
-4. You should work inside the `php` container. This project is configured to work with [Remote Container](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension for Visual Studio Code, so you could run `Reopen in container` command after open the project.
+otherwise you can use xampp setup :)
 
-5. Inside the `php` container, run `composer install` to install dependencies from `/var/www/symfony` folder.
-
-6. Use the following value for the DATABASE_URL environment variable:
-
-```
-DATABASE_URL=mysql://app_user:helloworld@db:3306/app_db?serverVersion=8.0.23
-```
-
-You could change the name, user and password of the database in the `env` file at the root of the project.
-
-## To learn more
-
-I have recorded a Youtube session explaining the different parts of this project. You could see it here:
-
-[Boilerplate para Symfony basado en Docker, NGINX y PHP8](https://youtu.be/A82-hry3Zvw)
+3. Go to http://localhost/
