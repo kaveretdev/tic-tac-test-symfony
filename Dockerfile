@@ -61,25 +61,23 @@ http { \
     } \
 }" > /etc/nginx/nginx.conf
 
-# Create single supervisord config file with all services
-RUN cat > /etc/supervisord.conf << 'EOF'
-[supervisord]
-nodaemon=true
-
-[program:php-fpm]
-command=docker-php-entrypoint php-fpm
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/php-fpm.err.log
-stdout_logfile=/var/log/php-fpm.out.log
-
-[program:nginx]
-command=nginx -g 'daemon off;'
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/nginx.err.log
-stdout_logfile=/var/log/nginx.out.log
-EOF
+# Create single supervisord.conf file with proper content
+RUN echo "[supervisord]" > /etc/supervisord.conf && \
+    echo "nodaemon=true" >> /etc/supervisord.conf && \
+    echo "" >> /etc/supervisord.conf && \
+    echo "[program:php-fpm]" >> /etc/supervisord.conf && \
+    echo "command=docker-php-entrypoint php-fpm" >> /etc/supervisord.conf && \
+    echo "autostart=true" >> /etc/supervisord.conf && \
+    echo "autorestart=true" >> /etc/supervisord.conf && \
+    echo "stderr_logfile=/var/log/php-fpm.err.log" >> /etc/supervisord.conf && \
+    echo "stdout_logfile=/var/log/php-fpm.out.log" >> /etc/supervisord.conf && \
+    echo "" >> /etc/supervisord.conf && \
+    echo "[program:nginx]" >> /etc/supervisord.conf && \
+    echo "command=nginx -g 'daemon off;'" >> /etc/supervisord.conf && \
+    echo "autostart=true" >> /etc/supervisord.conf && \
+    echo "autorestart=true" >> /etc/supervisord.conf && \
+    echo "stderr_logfile=/var/log/nginx.err.log" >> /etc/supervisord.conf && \
+    echo "stdout_logfile=/var/log/nginx.out.log" >> /etc/supervisord.conf
 
 # Expose port 80
 EXPOSE 80
