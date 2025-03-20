@@ -61,16 +61,25 @@ http { \
     } \
 }" > /etc/nginx/nginx.conf
 
-# Create separate Supervisor config files
-RUN mkdir -p /etc/supervisor.d/
+# Create single supervisord config file with all services
+RUN cat > /etc/supervisord.conf << 'EOF'
+[supervisord]
+nodaemon=true
 
-# Create main supervisord.conf
-RUN echo "[supervisord]\nnodaemon=true\n" > /etc/supervisord.conf
-RUN echo "[include]\nfiles = /etc/supervisor.d/*.ini" >> /etc/supervisord.conf
+[program:php-fpm]
+command=docker-php-entrypoint php-fpm
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/php-fpm.err.log
+stdout_logfile=/var/log/php-fpm.out.log
 
-# Create program configs
-RUN echo "[program:php-fpm]\ncommand=docker-php-entrypoint php-fpm\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/php-fpm.err.log\nstdout_logfile=/var/log/php-fpm.out.log" > /etc/supervisor.d/php-fpm.ini
-RUN echo "[program:nginx]\ncommand=nginx -g 'daemon off;'\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/nginx.err.log\nstdout_logfile=/var/log/nginx.out.log" > /etc/supervisor.d/nginx.ini
+[program:nginx]
+command=nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/nginx.err.log
+stdout_logfile=/var/log/nginx.out.log
+EOF
 
 # Expose port 80
 EXPOSE 80
