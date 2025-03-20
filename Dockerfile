@@ -30,9 +30,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . .
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html/var \
-    && chmod -R 775 /var/www/html/var
+# Ensure var directory exists before setting permissions
+RUN mkdir -p var/cache var/log \
+    && chown -R www-data:www-data var \
+    && chmod -R 775 var
 
 # Install Symfony dependencies
 RUN composer install --no-dev --optimize-autoloader
