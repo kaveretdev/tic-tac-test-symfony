@@ -41,48 +41,52 @@ RUN mkdir -p var/cache var/log \
 # Switch to non-root user
 USER symfony
 
-# Install Symfony dependencies as non-root
+# Install Symfony dependencies as non-root user
 RUN composer install --no-dev --optimize-autoloader
 
 # Switch back to root user for supervisor and nginx
 USER root
 
 # Configure NGINX
-RUN echo ' \
-worker_processes auto; \
-events { worker_connections 1024; } \
-http { \
-    include /etc/nginx/mime.types; \
-    sendfile on; \
-    server { \
-        listen 80; \
-        server_name _; \
-        root /var/www/html/public; \
-        location / { \
-            try_files $uri /index.php$is_args$args; \
-        } \
-        location ~ ^/index\.php(/|$) { \
-            fastcgi_pass 127.0.0.1:9000; \
-            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name; \
-            include fastcgi_params; \
-        } \
-        error_log /var/log/nginx/error.log; \
-        access_log /var/log/nginx/access.log; \
-    } \
+RUN echo 'worker_processes auto;
+events { worker_connections 1024; }
+http {
+    include /etc/nginx/mime.types;
+    sendfile on;
+    server {
+        listen 80;
+        server_name _;
+        root /var/www/html/public;
+        location / {
+            try_files $uri /index.php$is_args$args;
+        }
+        location ~ ^/index\.php(/|$) {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+        error_log  /var/log/nginx/error.log;
+        access_log /var/log/nginx/access.log;
+    }
 }' > /etc/nginx/nginx.conf
 
 # Configure Supervisor
-RUN echo ' \
-[supervisord] \
-nodaemon=true \
-[program:php-fpm] \
-command=docker-php-entrypoint php-fpm \
-autostart=true \
-autorestart=true \
-[program:nginx] \
-command=nginx -g "daemon off;" \
-autostart=true \
-autorestart=true \
+RUN echo '[supervisord]
+nodaemon=true
+
+[program:php-fpm]
+command=docker-php-entrypoint php-fpm
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/php-fpm.err.log
+stdout_logfile=/var/log/php-fpm.out.log
+
+[program:nginx]
+command=nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/nginx.err.log
+stdout_logfile=/var/log/nginx.out.log
 ' > /etc/supervisord.conf
 
 # Expose port 80
