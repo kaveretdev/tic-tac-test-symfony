@@ -60,24 +60,18 @@ http { \
         access_log /var/log/nginx/access.log; \
     } \
 }" > /etc/nginx/nginx.conf
-# Create Supervisor configuration with proper formatting
-RUN echo "[supervisord]\n\
-nodaemon=true\n\
-\n\
-[program:php-fpm]\n\
-command=docker-php-entrypoint php-fpm\n\
-autostart=true\n\
-autorestart=true\n\
-stderr_logfile=/var/log/php-fpm.err.log\n\
-stdout_logfile=/var/log/php-fpm.out.log\n\
-\n\
-[program:nginx]\n\
-command=nginx -g 'daemon off;'\n\
-autostart=true\n\
-autorestart=true\n\
-stderr_logfile=/var/log/nginx.err.log\n\
-stdout_logfile=/var/log/nginx.out.log\n\
-" > /etc/supervisord.conf
+
+# Create separate Supervisor config files
+RUN mkdir -p /etc/supervisor.d/
+
+# Create main supervisord.conf
+RUN echo "[supervisord]\nnodaemon=true\n" > /etc/supervisord.conf
+RUN echo "[include]\nfiles = /etc/supervisor.d/*.ini" >> /etc/supervisord.conf
+
+# Create program configs
+RUN echo "[program:php-fpm]\ncommand=docker-php-entrypoint php-fpm\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/php-fpm.err.log\nstdout_logfile=/var/log/php-fpm.out.log" > /etc/supervisor.d/php-fpm.ini
+RUN echo "[program:nginx]\ncommand=nginx -g 'daemon off;'\nautostart=true\nautorestart=true\nstderr_logfile=/var/log/nginx.err.log\nstdout_logfile=/var/log/nginx.out.log" > /etc/supervisor.d/nginx.ini
+
 # Expose port 80
 EXPOSE 80
 # Start Supervisor to run both NGINX & PHP-FPM
