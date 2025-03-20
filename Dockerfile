@@ -27,16 +27,25 @@ RUN apk update && apk add --no-cache \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Create a non-root user
+RUN addgroup -g 1000 symfony && adduser -G symfony -u 1000 -D symfony
+
 # Copy application files
 COPY . .
 
-# Ensure var directory exists before setting permissions
+# Ensure var/cache and var/log exist with correct permissions
 RUN mkdir -p var/cache var/log \
-    && chown -R www-data:www-data var \
-    && chmod -R 775 var
+    && chown -R symfony:symfony /var/www/html \
+    && chmod -R 775 /var/www/html
 
-# Install Symfony dependencies
+# Switch to non-root user
+USER symfony
+
+# Install Symfony dependencies as non-root
 RUN composer install --no-dev --optimize-autoloader
+
+# Switch back to root user for supervisor and nginx
+USER root
 
 # Configure NGINX
 RUN echo ' \
