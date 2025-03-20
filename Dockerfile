@@ -1,21 +1,36 @@
-# Use PHP 8.2 with FPM
+# Use PHP 8.2 with FPM on Alpine (lightweight)
 FROM php:8.2-fpm-alpine
-
-# Install system dependencies
-RUN apk add --no-cache nginx supervisor git unzip libpng-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql gd intl opcache \
-    && docker-php-ext-enable opcache
 
 # Set working directory
 WORKDIR /var/www/html
 
+# Install system dependencies and required PHP extensions
+RUN apk update && apk add --no-cache \
+    nginx \
+    supervisor \
+    git \
+    unzip \
+    libpng \
+    libpng-dev \
+    freetype \
+    freetype-dev \
+    libjpeg-turbo \
+    libjpeg-turbo-dev \
+    icu \
+    icu-dev \
+    postgresql-dev \
+    mariadb-connector-c-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql gd intl opcache \
+    && docker-php-ext-enable opcache
+
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy project files
+# Copy application files
 COPY . .
 
-# Set permissions
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html/var \
     && chmod -R 775 /var/www/html/var
 
@@ -63,5 +78,5 @@ autorestart=true \
 # Expose port 80
 EXPOSE 80
 
-# Start Supervisor (manages PHP-FPM & NGINX)
+# Start Supervisor to run both NGINX & PHP-FPM
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
